@@ -10,7 +10,7 @@
     <link href="plugins/videojs/css/video-js.css" rel="stylesheet" type="text/css">
     <link href="css/styles.css" rel="stylesheet" type="text/css">
 
-    <title>Video Analysis tool using canvas drawing</title>
+    <title>Video Analysis tool using canvas drawing, with capture support</title>
   </head>
   <body>
   	<div class="container mt-5">
@@ -130,6 +130,10 @@
 								<button class="btn-slow-motion" data-motion="8" data-playername='otherPlayer'>8x</button>
 							</div>
 						</div>
+                                            <div>
+                                                <button type="button" onclick="shoot()" style="width: 64px;border: solid 2px #ccc;">Capture</button><br/>
+                                                <div id="output" style="display: inline-block; top: 4px; position: relative ;border: dotted 1px #ccc; padding: 2px;"></div>
+                                            </div>
 		 			</div>
 					 			
 		 		</div>
@@ -150,6 +154,72 @@
 
 	<script src="plugins/fabric/fabric.min.js"></script>
 	<script src="js/commanFunction.js"></script>
+        
+        <script>
+            
+            //Capture support , does not work with zoom or rotate, drawing is saved with a little shift on X-Axis
+ 
+            var videoId = 'sidebyside-video_2';
+            var scaleFactor = 1; //0.25;
+            var snapshots = [];
+
+            /**
+             * Captures a image frame from the provided video element.
+             *
+             * @param {Video} video HTML5 video element from where the image frame will be captured.
+             * @param {Number} scaleFactor Factor to scale the canvas element that will be return. This is an optional parameter.
+             *
+             * @return {Canvas}
+             */
+            function capture(video, scaleFactor) {
+                if(scaleFactor == null){
+                    scaleFactor = 1;
+                }
+                
+                //see https://github.com/videojs/video.js/issues/2282
+                var videoWidth=parseInt(getComputedStyle(otherPlayer.el()).width); // true video.videoWidth
+                var videoHeight=parseInt(getComputedStyle(otherPlayer.el()).height);// true video.videoHeight
+               
+                var w = videoWidth * scaleFactor;
+                var h = videoHeight * scaleFactor;
+                var canvas = document.createElement('canvas');
+                    canvas.width  = w;
+                    canvas.height = h;
+                var ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, w, h);
+                return canvas;
+            } 
+ 
+        /**
+         * Invokes the <code>capture</code> function and attaches the canvas element to the DOM.
+         */
+        function shoot(){
+            var video  = document.getElementById(videoId+'_html5_api');
+            var output = document.getElementById('output');
+            var canvas = capture(video, scaleFactor);
+                canvas.onclick = function(){
+                    window.open(this.toDataURL());
+                };
+            //Merge canvas_draw with canvas 
+            var canvas_draw=document.getElementById('video-canvas1');
+           
+            //grab the context from your destination canvas "canvas"
+            var destinationCanvas=canvas;
+            var destCtx = destinationCanvas.getContext('2d');
+            
+            //call its drawImage() function passing it the source canvas directly
+            var sourceCanvas=canvas_draw;
+            var w = canvas.width;
+            var h = canvas.height;
+            destCtx.drawImage(sourceCanvas, 0, 0, w,h);
+            
+            snapshots.unshift(canvas);
+            output.innerHTML = '';
+            for(var i=0; i<4; i++){
+                output.appendChild(snapshots[i]);
+            }
+        }
+        </script>
 	
   </body>
 </html>
