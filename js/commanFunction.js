@@ -572,6 +572,9 @@ function deleteObjects() {
     }
 }
 
+
+var otherPlayer;
+
 jQuery(document).ready(function($) {
     
 var player = videojs("sidebyside-video_1").ready(function() {
@@ -595,21 +598,30 @@ var player = videojs("sidebyside-video_1").ready(function() {
     window.onresize = resizeVideoJS;
 });
 
-var otherPlayer = videojs("sidebyside-video_2").ready(function() {
+otherPlayer = videojs("sidebyside-video_2").ready(function() {
 var myPlayer = this, id = myPlayer.id();
 var aspectRatio = 300/640;
 
 function resizeVideoJS(){
-    var controlsHeight = 30;
-    var width = document.getElementById(id).parentElement.offsetWidth;
-    var height = document.getElementById(id).parentElement.offsetHeight;
-    aspectRatio = height/width;
+    //var controlsHeight = 30;
+    /*var width = document.getElementById(id).parentElement.offsetWidth;
+    var height = document.getElementById(id).parentElement.offsetHeight;*/
+    var width=parseInt(getComputedStyle(myPlayer.el()).width); // true video.videoWidth
+    var height=parseInt(getComputedStyle(myPlayer.el()).height);// true video.videoHeight
+                
+ //   aspectRatio = height/width;
 //              alert("height : "+height+"width : "+width);
 //              alert(width/height)
 //              myPlayer.width(width).height( width * aspectRatio );
-    $("#video-canvas1").width(width).height( width * aspectRatio -controlsHeight);
-    $("#video-canvas1").next(".upper-canvas").width(width).height( width * aspectRatio -controlsHeight);
-    $("#video-canvas1").next(".canvas-container").width(width).height( width * aspectRatio - controlsHeight );
+ /*   $("#video-canvas1").width(width).height( width * aspectRatio);// -controlsHeight);
+    $("#video-canvas1").next(".upper-canvas").width(width).height( width * aspectRatio);// -controlsHeight);
+    $("#video-canvas1").next(".canvas-container").width(width).height( width * aspectRatio);// - controlsHeight );*/
+    //
+    $("#video-canvas1").width(width).height(height);// -controlsHeight);
+    $("#video-canvas1").next(".upper-canvas").width(width).height(height);// -controlsHeight);
+    $("#video-canvas1").next(".canvas-container").width(width).height(height);
+    
+   
     //myPlayer.width(width).height( width * aspectRatio );
 }
 resizeVideoJS();
