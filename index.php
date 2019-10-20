@@ -130,10 +130,14 @@
 								<button class="btn-slow-motion" data-motion="8" data-playername='otherPlayer'>8x</button>
 							</div>
 						</div>
-                                            <div>
-                                                <button type="button" onclick="shoot()" style="width: 64px;border: solid 2px #ccc;">Capture</button><br/>
-                                                <div id="output" style="display: inline-block; top: 4px; position: relative ;border: dotted 1px #ccc; padding: 2px;"></div>
-                                            </div>
+                        <div class="slowmotion">
+							<h4>Snapshot</h4>
+							<div class="slowmotionblock">
+                            	<button class="btn-slow-motion" type="button" onclick="shoot()">Capture</button><br/>
+								<button class="btn-slow-motion" type="button" id="download_button">Download</button><br/>
+                            	<div id="output" style="display: inline-block; top: 4px; position: relative ;border: dotted 1px #ccc; padding: 2px;"></div>
+							</div>
+                        </div>
 		 			</div>
 					 			
 		 		</div>
@@ -158,10 +162,18 @@
         <script>
             
             //Capture support , does not work with zoom or rotate, drawing is saved with a little shift on X-Axis
+			//by sos-productions.com
  
             var videoId = 'sidebyside-video_2';
             var scaleFactor = 1; //0.25;
             var snapshots = [];
+			var snapshotsMax=4;
+			var snapshotMime='image/jpeg';
+			var snapshotFile='bunny%d.jpg';
+			var snapshotQuality=0.8;
+			var snapshotWidth=300;
+			var snapshotHeight=240;
+
 
             /**
              * Captures a image frame from the provided video element.
@@ -190,12 +202,9 @@
                 return canvas;
             } 
  
-        /**
-         * Invokes the <code>capture</code> function and attaches the canvas element to the DOM.
-         */
-        function shoot(){
-            var video  = document.getElementById(videoId+'_html5_api');
-            var output = document.getElementById('output');
+		function getMergedDrawAndVideoCanvas() {
+			 var video  = document.getElementById(videoId+'_html5_api');
+          
             var canvas = capture(video, scaleFactor);
                 canvas.onclick = function(){
                     window.open(this.toDataURL());
@@ -212,13 +221,101 @@
             var w = canvas.width;
             var h = canvas.height;
             destCtx.drawImage(sourceCanvas, 0, 0, w,h);
-            
-            snapshots.unshift(canvas);
-            output.innerHTML = '';
-            for(var i=0; i<4; i++){
-                output.appendChild(snapshots[i]);
-            }
+
+			return canvas;
+		}
+
+		var donwnloadMode=false;
+
+
+        /**
+         * Invokes the <code>capture</code> function and attaches the canvas element to the DOM.
+         */
+        function shoot(){
+
+            var canvas = getMergedDrawAndVideoCanvas()
+			donwnloadMode=false;
+			resizeImageCanvas(canvas,snapshotWidth,snapshotHeight);
+
         }
+
+		//Resize and Download support using Blob technique
+
+		var links=[];
+		
+
+	   document.getElementById("download_button").onclick = function() {
+
+		  var canvas = getMergedDrawAndVideoCanvas();
+		  donwnloadMode=true;
+		  resizeImageCanvas(canvas,snapshotWidth,snapshotHeight);
+		}
+
+		async function getImage({
+		  canvas,
+		  width,
+		  height,
+		  mime = snapshotMime,
+		  quality = snapshotQuality,
+		}) {
+		  return new Promise(resolve => {
+			const tmpCanvas = document.createElement('canvas');
+			tmpCanvas.width = width;
+			tmpCanvas.height = height;
+
+			const ctx = tmpCanvas.getContext('2d');
+			ctx.drawImage(
+			  canvas,
+			  0,
+			  0,
+			  canvas.width,
+			  canvas.height,
+			  0,
+			  0,
+			  width,
+			  height,
+			);
+
+			tmpCanvas.toBlob(function(blob){
+				var href = URL.createObjectURL(blob);
+				console.log(href); // this line should be here
+
+				var link = document.createElement("a");
+				link.download = snapshotFile.replace(/%d/, links.length);
+				link.href=href;
+
+				var img = document.createElement("img");
+				img.src=href;
+				img.width=width;
+				img.height=height;
+				link.appendChild(img);
+
+	 			 var output = document.getElementById('output');
+			        
+				 snapshots.unshift(link);
+				output.innerHTML = '';
+
+				var iMax=snapshots.length;
+				if(iMax > snapshotsMax) {
+					iMax=snapshotsMax;
+				}
+
+		         for(var i=0; i<iMax; i++){
+		            output.appendChild(snapshots[i]);
+		        }
+
+		       if(donwnloadMode) {
+					link.click();
+				}
+
+			 }, mime, quality);
+
+		  });
+		}
+
+		async function resizeImageCanvas(canvas,width,height) {
+			const photo = await getImage({ canvas, width: width, height: height });
+		}
         </script>
 	
   </body>
