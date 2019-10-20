@@ -1,4 +1,4 @@
-## Video analysis tool using canvas drawing
+## Video analysis tool using canvas drawing with capture and download support (of video plus drawing when no zoom or video rotation)
 
 Video analysis tool is used for compare videos, suppose we have subscribed to an online learning any sports from videos. From instructor’s videos we are learning and practicing. Now if we want to compare my practice shorts with instructor’s video we can use this tool. 
 
